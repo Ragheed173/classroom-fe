@@ -1,6 +1,6 @@
-const List = () => {
+const SubjectsList = () => {
     return (
-        <div>List</div>
+        <div>SubjectsList</div>
     )
 }
-export default List
+export default SubjectsList;
