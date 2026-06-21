@@ -77,7 +77,9 @@ const SubjectsList = () => {
 
     return (
         <ListView>
+
             <Breadcrumb />
+            
             <h1 className="page-title">Subjects</h1>
 
             <div className="intro-row">
