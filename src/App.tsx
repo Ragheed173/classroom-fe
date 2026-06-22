@@ -50,7 +50,7 @@ function App() {
                     name: 'classes',
                     list: '/classes',
                     create: '/classes/create',
-                    meta: { lable: 'Classes', icon: <GraduationCap/> },
+                    meta: { label: 'Classes', icon: <GraduationCap/> },
                 }
               ]
               }
