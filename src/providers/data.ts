@@ -40,7 +40,13 @@ const options: CreateDataProviderOptions = {
 
       return payload.pagination?.total ?? payload.data?.length ?? 0;
     }
-  }
+  },
+  create: {
+    mapResponse: async (response) => {
+      const payload = await response.clone().json();
+      return payload.data ?? payload;
+    },
+  },
 };
 
 const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);

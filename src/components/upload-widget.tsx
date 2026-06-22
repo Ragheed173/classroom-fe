@@ -15,6 +15,7 @@ function UploadWidget({
   const [preview, setPreview] = useState<UploadWidgetValue | null>(value);
   const [deleteToken, setDeleteToken] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [widgetError, setWidgetError] = useState<string | null>(null);
 
   // Always keep latest onChange
   useEffect(() => {
@@ -54,6 +55,7 @@ function UploadWidget({
 
             setPreview(payload);
             setDeleteToken(result.info.delete_token ?? null);
+            setWidgetError(null);
             onChangeRef.current?.(payload);
           }
         }
@@ -74,9 +76,17 @@ function UploadWidget({
   }, []);
 
   const openWidget = () => {
-    if (!disabled) {
-      widgetRef.current?.open();
+    if (disabled) return;
+
+    if (!widgetRef.current) {
+      setWidgetError(
+        "Upload is not ready yet. Wait a moment and try again, or refresh the page."
+      );
+      return;
     }
+
+    setWidgetError(null);
+    widgetRef.current.open();
   };
 
   const removeFromCloudinary = async () => {
@@ -89,23 +99,20 @@ function UploadWidget({
         const params = new URLSearchParams();
         params.append("token", deleteToken);
 
-        const response = await fetch(
+        await fetch(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/delete_by_token`,
           {
             method: "POST",
             body: params,
           }
         );
-        if (!response.ok) {
-          throw new Error(`Cloudinary delete failed: ${response.status}`);
-        }
       }
-      setPreview(null);
-      setDeleteToken(null);
-      onChangeRef.current?.(null);
     } catch (error) {
       console.error("Failed to remove image from Cloudinary", error);
     } finally {
+      setPreview(null);
+      setDeleteToken(null);
+      onChangeRef.current?.(null);
       setIsRemoving(false);
     }
   };
@@ -147,6 +154,10 @@ function UploadWidget({
             </div>
           </div>
         </div>
+      )}
+
+      {widgetError && (
+        <p className="text-destructive text-sm">{widgetError}</p>
       )}
     </div>
   );

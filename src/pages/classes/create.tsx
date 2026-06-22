@@ -24,21 +24,18 @@ import { CreateView } from "@/components/refine-ui/views/create-view";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 
 import { Textarea } from "@/components/ui/textarea";
-import { useBack, type HttpError } from "@refinedev/core";
+import { useBack, useList } from "@refinedev/core";
 import { Loader2 } from "lucide-react";
 import { classSchema } from "@/lib/schema";
 import UploadWidget from "@/components/upload-widget.tsx";
-import { UploadWidgetValue } from "@/types";
 import { mockSubjects } from "@/mocks/subjects";
 import { mockTeachers } from "@/mocks/teachers";
 import type * as z from "zod";
 
-type ClassFormValues = z.infer<typeof classSchema>;
-
 const ClassesCreate = () => {
   const back = useBack();
 
-  const form = useForm<ClassFormValues, HttpError, ClassFormValues>({
+  const form = useForm({
     resolver: zodResolver(classSchema),
     refineCoreProps: {
       resource: "classes",
@@ -58,7 +55,7 @@ const ClassesCreate = () => {
 
   const bannerPublicId = form.watch("bannerCldPubId");
 
-  const onSubmit = async (values: ClassFormValues) => {
+  const onSubmit = async (values: z.infer<typeof classSchema>) => {
     try {
       await onFinish(values);
     } catch (error) {
@@ -66,8 +63,22 @@ const ClassesCreate = () => {
     }
   };
 
+  // Teachers: backend has no /api/users route — use local mocks
   const teachers = mockTeachers;
-  const subjects = mockSubjects;
+  const teachersLoading = false;
+
+  // Subjects: prefer API, fall back to mocks when empty or failing
+  const { query: subjectsQuery } = useList({
+    resource: "subjects",
+    pagination: {
+      pageSize: 100,
+    },
+  });
+
+  const apiSubjects = subjectsQuery.data?.data ?? [];
+  const subjects =
+    apiSubjects.length > 0 && !subjectsQuery.error ? apiSubjects : mockSubjects;
+  const subjectsLoading = subjectsQuery.isLoading;
 
   return (
     <CreateView className="class-view">
@@ -93,10 +104,7 @@ const ClassesCreate = () => {
 
           <CardContent className="mt-7">
             <Form {...form}>
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="space-y-5"
-              >
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <FormField
                   control={control}
                   name="bannerUrl"
@@ -115,7 +123,7 @@ const ClassesCreate = () => {
                                 }
                               : null
                           }
-                          onChange={(file: UploadWidgetValue | null) => {
+                          onChange={(file) => {
                             if (file) {
                               field.onChange(file.url);
                               form.setValue("bannerCldPubId", file.publicId, {
@@ -175,6 +183,7 @@ const ClassesCreate = () => {
                             field.onChange(Number(value))
                           }
                           value={field.value?.toString()}
+                          disabled={subjectsLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
@@ -184,8 +193,8 @@ const ClassesCreate = () => {
                           <SelectContent>
                             {subjects.map((subject) => (
                               <SelectItem
-                                key={subject.id}
-                                value={subject.id.toString()}
+                                key={String(subject.id)}
+                                value={String(subject.id)}
                               >
                                 {subject.name} ({subject.code})
                               </SelectItem>
@@ -208,6 +217,7 @@ const ClassesCreate = () => {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value?.toString()}
+                          disabled={teachersLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
@@ -306,13 +316,7 @@ const ClassesCreate = () => {
 
                 <Separator />
 
-                <Button
-                 type="submit"
-                 size="lg"
-                 className="w-full"
-                 disabled={isSubmitting}
-                 onClick={handleSubmit(onSubmit)}
-                >
+                <Button type="submit" size="lg" className="w-full">
                   {isSubmitting ? (
                     <div className="flex gap-1">
                       <span>Creating Class...</span>
