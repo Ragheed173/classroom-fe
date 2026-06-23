@@ -1,6 +1,6 @@
 import { createDataProvider, CreateDataProviderOptions } from "@refinedev/rest";
 import { BACKEND_BASE_URL } from "@/constants";
-import { ListResponse } from "@/types";
+import { CreateResponse, ListResponse } from "@/types";
 import { HttpError } from "@refinedev/core";
 
 if (!BACKEND_BASE_URL) {
@@ -50,7 +50,6 @@ const options: CreateDataProviderOptions = {
 
       return payload.data || [];
     },
-
     getTotalCount: async (response) => {
       if(!response.ok) throw await buildHttpError(response);
       const payload : ListResponse = await response.clone().json();
@@ -59,9 +58,12 @@ const options: CreateDataProviderOptions = {
     }
   },
   create: {
+    getEndpoint: ({ resource }) => resource,
+
+    buildBodyParams: async ( { variables}) => variables,
     mapResponse: async (response) => {
-      const payload = await response.clone().json();
-      return payload.data ?? payload;
+      const json: CreateResponse = await response.clone().json();
+      return json.data ?? [];
     },
   },
 };

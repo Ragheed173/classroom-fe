@@ -29,8 +29,8 @@ import { Loader2 } from "lucide-react";
 import { classSchema } from "@/lib/schema";
 import UploadWidget from "@/components/upload-widget.tsx";
 import { mockSubjects } from "@/mocks/subjects";
-import { mockTeachers } from "@/mocks/teachers";
 import type * as z from "zod";
+import { Subject, User } from "@/types";
 
 const ClassesCreate = () => {
   const back = useBack();
@@ -63,23 +63,33 @@ const ClassesCreate = () => {
     }
   };
 
-  // Teachers: backend has no /api/users route — use local mocks
-  const teachers = mockTeachers;
-  const teachersLoading = false;
-
-  // Subjects: prefer API, fall back to mocks when empty or failing
-  const { query: subjectsQuery } = useList({
+  const { query: subjectsQuery } = useList<Subject>({
     resource: "subjects",
     pagination: {
       pageSize: 100,
     },
   });
 
-  const apiSubjects = subjectsQuery.data?.data ?? [];
-  const subjects =
-    apiSubjects.length > 0 && !subjectsQuery.error ? apiSubjects : mockSubjects;
+  const { query: teachersQuery } = useList<User>({
+    resource: "users",
+    filters: [
+      {
+      field: "role",
+      operator: "eq",
+      value: "teacher",
+    }
+    ],
+    pagination: {
+      pageSize: 100,
+    },
+  });
+
+  const subjects = subjectsQuery?.data?.data || [];
   const subjectsLoading = subjectsQuery.isLoading;
 
+  const teachers = teachersQuery?.data?.data || [];
+  const teachersLoading = teachersQuery.isLoading;
+  
   return (
     <CreateView className="class-view">
       <Breadcrumb />
