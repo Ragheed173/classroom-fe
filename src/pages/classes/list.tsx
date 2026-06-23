@@ -32,15 +32,11 @@ const ClassesList = () => {
     const subjects = subjectsQuery?.data?.data || [];
     const teachers = teachersQuery?.data?.data || [];
 
-    const subjectFilters = selectedSubject === 'all' ? [] : [
-        { field: 'subject', operator: 'eq' as const, value: selectedSubject}
-    ];
-    const teacherFilters = selectedTeacher === 'all' ? [] : [
-        { field: 'teacher', operator: 'eq' as const, value: selectedTeacher}
-    ];
-    const searchFilters = searchQuery ? [
-        { field: 'name', operator: 'contains' as const, value: searchQuery }
-    ] : [];
+    const permanentFilters = useMemo(() => [
+        ...(selectedSubject === 'all' ? [] : [{ field: 'subject', operator: 'eq' as const, value: selectedSubject }]),
+        ...(selectedTeacher === 'all' ? [] : [{ field: 'teacher', operator: 'eq' as const, value: selectedTeacher }]),
+        ...(searchQuery ? [{ field: 'name', operator: 'contains' as const, value: searchQuery }] : []),
+    ], [selectedSubject, selectedTeacher, searchQuery]);
 
     const classColumns = useMemo<ColumnDef<ClassDetails>[]>(() => [
         {
@@ -114,7 +110,7 @@ const ClassesList = () => {
             resource: 'classes',
             pagination: { pageSize: 10, mode: 'server' },
             filters: {
-                permanent: [...subjectFilters, ...teacherFilters, ...searchFilters]
+                permanent: permanentFilters
             },
             sorters: {
                 initial: [
