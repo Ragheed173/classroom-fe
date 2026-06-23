@@ -57,7 +57,9 @@ export const ALLOWED_TYPES = [
 
 export const CLOUDINARY_UPLOAD_URL = import.meta.env.VITE_CLOUDINARY_UPLOAD_URL;
 export const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-export const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+export const BACKEND_BASE_URL =
+  import.meta.env.VITE_BACKEND_BASE_URL ??
+  "https://classroom-be-production-94fa.up.railway.app/api/";
 
 export const BASE_URL = import.meta.env.VITE_API_URL;
 export const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN_KEY;
