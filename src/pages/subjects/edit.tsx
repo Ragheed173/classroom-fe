@@ -14,18 +14,18 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CreateView } from "@/components/refine-ui/views/create-view";
+import { EditView } from "@/components/refine-ui/views/edit-view";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { subjectSchema } from "@/lib/schema";
 import { Department } from "@/types";
 
-const SubjectsCreate = () => {
+const SubjectsEdit = () => {
   const form = useForm({
     resolver: zodResolver(subjectSchema),
-    refineCoreProps: { resource: "subjects", action: "create" },
+    refineCoreProps: { resource: "subjects", action: "edit" },
   });
 
-  const { refineCore: { onFinish }, handleSubmit, control, formState: { isSubmitting } } = form;
+  const { refineCore: { onFinish, queryResult }, handleSubmit, control, formState: { isSubmitting } } = form;
 
   const { query: deptsQuery } = useList<Department>({
     resource: "departments",
@@ -33,15 +33,19 @@ const SubjectsCreate = () => {
   });
   const departments = deptsQuery?.data?.data ?? [];
 
+  if (queryResult?.isLoading) {
+    return <EditView className="class-view"><Breadcrumb /><p className="text-muted-foreground mt-4">Loading...</p></EditView>;
+  }
+
   return (
-    <CreateView className="class-view">
+    <EditView className="class-view">
       <Breadcrumb />
-      <h1 className="page-title">Create Subject</h1>
+      <h1 className="page-title">Edit Subject</h1>
 
       <div className="my-4">
         <Card className="class-form-card">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gradient-orange">Fill out form</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gradient-orange">Update details</CardTitle>
           </CardHeader>
           <Separator />
           <CardContent className="mt-6">
@@ -92,22 +96,22 @@ const SubjectsCreate = () => {
                 <FormField control={control} name="description" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description <span className="text-orange-600">*</span></FormLabel>
-                    <FormControl><Textarea placeholder="Brief description of the subject" {...field} /></FormControl>
+                    <FormControl><Textarea placeholder="Brief description of the subject" {...field} value={field.value ?? ""} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
                 <Separator />
                 <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</> : "Create Subject"}
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : "Save Changes"}
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
       </div>
-    </CreateView>
+    </EditView>
   );
 };
 
-export default SubjectsCreate;
+export default SubjectsEdit;
